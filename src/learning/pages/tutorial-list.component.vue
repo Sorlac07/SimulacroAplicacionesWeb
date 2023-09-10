@@ -19,6 +19,12 @@
           </template>
   
           <template #end>
+            <pv-button
+                label="Export"
+                icon="pi pi-download"
+                class="p-button-help"
+                @click="exportToCSV($event)"
+            />
           </template>
         </pv-toolbar>
   
@@ -144,10 +150,13 @@
         return tutorial;
       },
       initFilters() {
-      this.filters = {
-        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-      };
-    }
+        this.filters = {
+          global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+        };
+      },
+      exportToCSV() {
+        this.$refs.dt.exportCSV();
+      },
     },
   };
   </script>
