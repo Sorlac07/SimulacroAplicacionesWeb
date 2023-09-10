@@ -101,7 +101,7 @@
                   <pv-button
                       icon="pi pi-trash"
                       class="p-button-text p-button-rounded"
-                      @click=""
+                      @click="confirmDeleteTutorial(slotProps.data)"
                   />
               </template>
           </pv-column>
@@ -183,6 +183,33 @@
         />
       </template>
     </pv-dialog>
+    <pv-dialog
+        v-model:visible="deleteTutorialDialog"
+        :style="{ width: '450px' }"
+        header="Confirm"
+        :modal="true"
+    >
+      <div class="confirmation-content">
+        <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
+        <span v-if="tutorial">
+            Are you sure you want to delete <b>{{ tutorial.title }}</b>?
+        </span>
+      </div>
+      <template #footer>
+        <pv-button
+            :label="'No'.toUpperCase()"
+            icon="pi pi-times"
+            class="p-button-text"
+            @click="deleteTutorialDialog = false"
+        />
+        <pv-button
+            :label="'Yes'.toUpperCase()"
+            icon="pi pi-check"
+            class="p-button-text"
+            @click="deleteTutorial"
+        />
+      </template>
+    </pv-dialog>
 
   
     </div>
@@ -198,6 +225,7 @@
       return {
         tutorials: [],
         tutorialDialog: false,
+        deleteTutorialDialog: false,
         tutorial: {},
         selectedTutorials: null,
         statuses: [
@@ -304,11 +332,37 @@
         console.log(this.tutorial);
         this.tutorialDialog = true;
       },
+      confirmDeleteTutorial(tutorial) {
+        this.tutorial = tutorial;
+        this.deleteTutorialDialog = true;
+      },
+      deleteTutorial() {
+        this.tutorialsService.delete(this.tutorial.id).then((response) => {
+          this.tutorials = this.tutorials.filter(
+              (t) => t.id !== this.tutorial.id
+          );
+          this.deleteTutorialDialog = false;
+          this.tutorial = {};
+          this.$toast.add({
+            severity: "success",
+            summary: "Successful",
+            detail: "Tutorial Deleted",
+            life: 3000,
+          });
+          console.log(response);
+        });
+      },
     },
   };
   </script>
   
   <style scoped>
+  .confirmation-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   .table-header {
     display: flex;
     align-items: center;
