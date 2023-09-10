@@ -13,8 +13,8 @@
                 label="Delete"
                 icon="pi pi-trash"
                 class="p-button-danger"
-                @click=""
-                :disabled="true"
+                @click="confirmDeleteSelected"
+                :disabled="!selectedTutorials || !selectedTutorials.length"
             />
           </template>
   
@@ -210,7 +210,33 @@
         />
       </template>
     </pv-dialog>
-
+    <pv-dialog
+        v-model:visible="deleteTutorialsDialog"
+        :style="{ width: '450px' }"
+        header="Confirm"
+        :modal="true"
+    >
+      <div class="confirmation-content">
+        <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
+        <span v-if="tutorial">
+          Are you sure you want to delete the selected tutorials?
+        </span>
+      </div>
+      <template #footer>
+        <pv-button
+            :label="'No'.toUpperCase()"
+            icon="pi pi-times"
+            class="p-button-text"
+            @click="deleteTutorialsDialog = false"
+        />
+        <pv-button
+            :label="'Yes'.toUpperCase()"
+            icon="pi pi-check"
+            class="p-button-text"
+            @click="deleteSelectedTutorials"
+        />
+      </template>
+    </pv-dialog>
   
     </div>
   </template>
@@ -226,6 +252,7 @@
         tutorials: [],
         tutorialDialog: false,
         deleteTutorialDialog: false,
+        deleteTutorialsDialog: false,
         tutorial: {},
         selectedTutorials: null,
         statuses: [
@@ -351,6 +378,21 @@
           });
           console.log(response);
         });
+      },
+      confirmDeleteSelected() {
+        this.deleteTutorialsDialog = true;
+      },
+      deleteSelectedTutorials() {
+        this.selectedTutorials.forEach((tutorial) => {
+          this.tutorialsService.delete(tutorial.id)
+            .then((response) => {
+              this.tutorials = this.tutorials.filter(
+                (t) => t.id !== tutorial.id
+              );
+              console.log(response);
+            });
+        });
+        this.deleteTutorialsDialog = false;
       },
     },
   };
