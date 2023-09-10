@@ -29,6 +29,7 @@
             dataKey="id"
             :paginator="true"
             :rows="10"
+            :filters="filters"
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
             :rowsPerPageOptions="[5, 10, 25]"
             currentPageReportTemplate="Showing {first} to {last} of {totalRecords} tutorials"
@@ -36,9 +37,17 @@
         >
           <template #header>
             <div class="table-header flex flex-column md:flex-row md:justify-content-between">
-                <h5 class="mb-2 md:m-0 p-as-md-center text-xl">Manage Tutorials</h5>
+              <h5 class="mb-2 md:m-0 p-as-md-center text-xl">Manage Tutorials</h5>
+              <span class="p-input-icon-left">
+                <i class="pi pi-search" />
+                <pv-input-text
+                    v-model="filters['global'].value"
+                    placeholder="Search..."
+                />
+              </span>
             </div>
           </template>
+
   
           <pv-column
               selectionMode="multiple"
@@ -98,6 +107,7 @@
   
   <script>
   import { TutorialsApiService } from "../services/tutorials-api.service";
+  import { FilterMatchMode } from "primevue/api";
   
   export default {
     name: "tutorial-list",
@@ -111,6 +121,7 @@
           { label: "Unpublished", value: "unpublished" },
         ],
         tutorialsService: null,
+        filters: {},
       };
     },
     created() {
@@ -124,13 +135,19 @@
               );
           console.log(this.tutorials);
       });
+      this.initFilters();
     },
   
     methods: {
       getDisplayableTutorial(tutorial) {
         tutorial.status = tutorial.published ? this.statuses[0].label : this.statuses[1].label;
         return tutorial;
-      }
+      },
+      initFilters() {
+      this.filters = {
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+      };
+    }
     },
   };
   </script>
