@@ -96,7 +96,7 @@
                   <pv-button
                       icon="pi pi-pencil"
                       class="p-button-text p-button-rounded"
-                      @click=""
+                      @click="editTutorial(slotProps.data)"
                   />
                   <pv-button
                       icon="pi pi-trash"
@@ -253,9 +253,31 @@
         this.tutorialDialog = false;
         this.submitted = false;
       },
+      findIndexById(id) {
+        console.log(`current id: ${id}`);
+        return this.tutorials.findIndex((tutorial) => tutorial.id === id);
+      },
       saveTutorial() {
         this.submitted = true;
         if (this.tutorial.title.trim()) {
+          if (this.tutorial.id) {
+            console.log(this.tutorial);
+            this.tutorial = this.getStorableTutorial(this.tutorial);
+            this.tutorialsService
+                .update(this.tutorial.id, this.tutorial)
+                .then((response) => {
+                  console.log(response.data.id);
+                  this.tutorials[this.findIndexById(response.data.id)] =
+                      this.getDisplayableTutorial(response.data);
+                  this.$toast.add({
+                    severity: "success",
+                    summary: "Successful",
+                    detail: "Tutorial Updated",
+                    life: 3000,
+                  });
+                  console.log(response);
+                });
+          } else {
             this.tutorial.id = 0;
             console.log(this.tutorial);
             this.tutorial = this.getStorableTutorial(this.tutorial);
@@ -271,9 +293,16 @@
                   });
                   console.log(response);
                 });
+          }
           this.tutorialDialog = false;
           this.tutorial = {};
         }
+      },
+      editTutorial(tutorial) {
+        console.log(tutorial);
+        this.tutorial = { ...tutorial };
+        console.log(this.tutorial);
+        this.tutorialDialog = true;
       },
     },
   };
