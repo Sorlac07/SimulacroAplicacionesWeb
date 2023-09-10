@@ -7,7 +7,7 @@
                 label="New"
                 icon="pi pi-plus"
                 class="p-button-success mr-2"
-                @click=""
+                @click="openNew"
             />
             <pv-button
                 label="Delete"
@@ -107,6 +107,83 @@
           </pv-column>
         </pv-data-table>
       </div>
+      <pv-dialog
+        v-model:visible="tutorialDialog"
+        :style="{ width: '450px' }"
+        header="Tutorial Information"
+        :modal="true"
+        class="p-fluid"
+    >
+      <div class="field mt-3">
+        <span class="p-float-label">
+          <pv-input-text
+              type="text"
+              id="title"
+              v-model.trim="tutorial.title"
+              required="true"
+              autofocus
+              :class="{ 'p-invalid': submitted && !tutorial.title }"
+          />
+          <label for="title">Title</label>
+          <small class="p-error" v-if="submitted && !tutorial.title">
+            Title is required.
+          </small>
+        </span>
+      </div>
+
+      <div class="field">
+        <span class="p-float-label">
+          <pv-textarea
+              id="description"
+              v-model="tutorial.description"
+              required="false"
+              rows="2"
+              cols="20"
+          />
+          <label for="description">Description</label>
+        </span>
+      </div>
+      <div class="field">
+        <pv-dropdown
+            id="published"
+            v-model="tutorial.status"
+            :options="statuses"
+            optionLabel="label"
+            placeholder="Select a Status"
+        >
+          <template #value="slotProps">
+            <div v-if="slotProps.value && slotProps.value.value">
+              <span :class="'tutorial-badge status-' + slotProps.value.value">
+                {{ slotProps.value.label}}
+              </span>
+            </div>
+            <div v-else-if="slotProps.value && !slotProps.value.value">
+              <span :class=" 'tutorial-badge status-' + slotProps.value.toLowerCase() ">
+                {{ slotProps.value }}
+              </span>
+            </div>
+            <span v-else>
+              {{ slotProps.placeholder }}
+            </span>
+          </template>
+        </pv-dropdown>
+      </div>
+      <template #footer>
+        <pv-button
+            :label="'Cancel'.toUpperCase()"
+            icon="pi pi-times"
+            class="p-button-text"
+            @click="hideDialog"
+        />
+        <pv-button
+            :label="'Save'.toUpperCase()"
+            icon="pi pi-check"
+            class="p-button-text"
+            @click="saveTutorial"
+        />
+      </template>
+    </pv-dialog>
+
   
     </div>
   </template>
@@ -120,6 +197,7 @@
     data() {
       return {
         tutorials: [],
+        tutorialDialog: false,
         tutorial: {},
         selectedTutorials: null,
         statuses: [
@@ -128,6 +206,7 @@
         ],
         tutorialsService: null,
         filters: {},
+        submitted: false,
       };
     },
     created() {
@@ -156,6 +235,45 @@
       },
       exportToCSV() {
         this.$refs.dt.exportCSV();
+      },
+      getStorableTutorial(displayableTutorial) {
+        return {
+          id: displayableTutorial.id,
+          title: displayableTutorial.title,
+          description: displayableTutorial.description,
+          published: displayableTutorial.status.label === "Published",
+        };
+      },
+      openNew() {
+        this.tutorial = {};
+        this.submitted = false;
+        this.tutorialDialog = true;
+      },
+      hideDialog() {
+        this.tutorialDialog = false;
+        this.submitted = false;
+      },
+      saveTutorial() {
+        this.submitted = true;
+        if (this.tutorial.title.trim()) {
+            this.tutorial.id = 0;
+            console.log(this.tutorial);
+            this.tutorial = this.getStorableTutorial(this.tutorial);
+            this.tutorialsService.create(this.tutorial)
+                .then((response) => {
+                  this.tutorial = this.getDisplayableTutorial(response.data);
+                  this.tutorials.push(this.tutorial);
+                  this.$toast.add({
+                    severity: "success",
+                    summary: "Successful",
+                    detail: "Tutorial Created",
+                    life: 3000,
+                  });
+                  console.log(response);
+                });
+          this.tutorialDialog = false;
+          this.tutorial = {};
+        }
       },
     },
   };
